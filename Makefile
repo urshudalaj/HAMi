@@ -16,21 +16,25 @@
 BINARY_NAME ?= hami
 CMD_DIR     := ./cmd
 OUTPUT_DIR  := ./bin
- image configuration
-REGI?= ghcr.io/hami-project
-IMAGE_NAME?= hami
+
+# Image configuration
+REGIRY    hami-project
+IMAGE_NAME  ?= hami
 VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-IMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
+I $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
 
 # Go build configuration
-GO          :=LAGS     ?= -trimpath
-LD_FLAGS    := -ldflags "- main.version=$(VERSION) -w -s"
+GO          := go
+GOFLAGS     ?= -trimpath
+ags "-X main.version=$(VERSION) -w -s"
 
 # Tools
-GOLINTangci-lint
+GOLINT      := golangci-lint
 
 .PHONY: all
-all: build build: Build all binaries
+all: build
+
+## build: Build all binaries
 .PHONY: build
 build:
 	@echo ">> Building $(BINARY_NAME) version=$(VERSION)"
