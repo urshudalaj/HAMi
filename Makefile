@@ -1,107 +1,106 @@
-##### Global variables #####
-include version.mk Makefile.defs
+# Copyright 2024 HAMi Authors
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-HAMI_VERSION_PKG=github.com/Project-HAMi/HAMi/pkg
+# Build configuration
+BINARY_NAME ?= hami
+CMD_DIR     := ./cmd
+OUTPUT_DIR  := ./bin
+ image configuration
+REGI?= ghcr.io/hami-project
+IMAGE_NAME?= hami
+VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
+IMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
 
-ifndef GITHUB_ACTIONS
-	REVISION?=$(shell git rev-parse --short HEAD)
-else
-	REVISION=$(GITHUB_SHA)
-endif
+# Go build configuration
+GO          :=LAGS     ?= -trimpath
+LD_FLAGS    := -ldflags "- main.version=$(VERSION) -w -s"
 
-##### The ldflags for the go build process to set the version related data.
-GO_BUILD_LDFLAGS=\
-	-s \
-	-w \
-	-X $(HAMI_VERSION_PKG)/version.version=$(VERSION)  \
-	-X $(HAMI_VERSION_PKG)/device-plugin/nvidiadevice/nvinternal/info.version=$(VERSION) \
-	-X $(HAMI_VERSION_PKG)/version.revision=$(REVISION)  \
-	-X $(HAMI_VERSION_PKG)/version.buildDate=$(shell date +"%Y%m%d-%T")
+# Tools
+GOLINTangci-lint
 
-all: build
+.PHONY: all
+all: build build: Build all binaries
+.PHONY: build
+build:
+	@echo ">> Building $(BINARY_NAME) version=$(VERSION)"
+	@mkdir -p $(OUTPUT_DIR)
+	$(GO) build $(GOFLAGS) $(LD_FLAGS) -o $(OUTPUT_DIR)/$(BINARY_NAME) $(CMD_DIR)/...
 
-docker:
-	docker build \
-	--build-arg GOLANG_IMAGE=${GOLANG_IMAGE} \
-	--build-arg TARGET_ARCH=${TARGET_ARCH} \
-	--build-arg NVIDIA_IMAGE=${NVIDIA_IMAGE} \
-	--build-arg DEST_DIR=${DEST_DIR} \
-	--build-arg VERSION=${VERSION} \
-	--build-arg GOPROXY=https://goproxy.cn,direct \
-	. -f=docker/Dockerfile -t ${IMG_TAG}
+## test: Run unit tests
+.PHONY: test
+test:
+	@echo ">> Running unit tests"
+	$(GO) test ./... -v -race -coverprofile=coverage.out
 
-dockerwithlib:
-	docker build \
-	--no-cache \
-	--build-arg GOLANG_IMAGE=${GOLANG_IMAGE} \
-	--build-arg TARGET_ARCH=${TARGET_ARCH} \
-	--build-arg NVIDIA_IMAGE=${NVIDIA_IMAGE} \
-	--build-arg DEST_DIR=${DEST_DIR} \
-	--build-arg VERSION=${VERSION} \
-	--build-arg GOPROXY=https://goproxy.cn,direct \
-	. -f=docker/Dockerfile.withlib -t ${IMG_TAG}
+## test-coverage: Generate test coverage report
+.PHONY: test-coverage
+test-coverage: test
+	$(GO) tool cover -html=coverage.out -o coverage.html
+	@echo ">> Coverage report generated at coverage.html"
 
-tidy:
+## lint: Run linter
+.PHONY: lint
+lint:
+	@echo ">> Running linter"
+	$(GOLINT) run ./...
+
+## fmt: Format Go source code
+.PHONY: fmt
+fmt:
+	@echo ">> Formatting source code"
+	$(GO) fmt ./...
+
+## vet: Run go vet
+.PHONY: vet
+vet:
+	@echo ">> Running go vet"
+	$(GO) vet ./...
+
+## docker-build: Build the Docker image
+.PHONY: docker-build
+docker-build:
+	@echo ">> Building Docker image $(IMAGE_TAG)"
+	docker build -t $(IMAGE_TAG) .
+
+## docker-push: Push the Docker image
+.PHONY: docker-push
+docker-push:
+	@echo ">> Pushing Docker image $(IMAGE_TAG)"
+	docker push $(IMAGE_TAG)
+
+## clean: Remove build artifacts
+.PHONY: clean
+clean:
+	@echo ">> Cleaning build artifacts"
+	@rm -rf $(OUTPUT_DIR)
+	@rm -f coverage.out coverage.html
+
+## generate: Run code generation
+.PHONY: generate
+generate:
+	@echo ">> Running code generation"
+	$(GO) generate ./...
+
+## mod-tidy: Tidy go modules
+.PHONY: mod-tidy
+mod-tidy:
+	@echo ">> Tidying go modules"
 	$(GO) mod tidy
 
-proto:
-	$(GO) get github.com/gogo/protobuf/protoc-gen-gofast@v1.3.2
-	protoc --gofast_out=plugins=grpc:. ./pkg/api/*.proto
-
-build: $(CMDS) $(DEVICES)
-
-$(CMDS):
-	$(GO) build -ldflags '$(GO_BUILD_LDFLAGS)' -o ${OUTPUT_DIR}/$@ ./cmd/$@
-
-$(DEVICES):
-	$(GO) build -ldflags '$(GO_BUILD_LDFLAGS)' -o ${OUTPUT_DIR}/$@-device-plugin ./cmd/device-plugin/$@
-
-clean:
-	$(GO) clean -r -x ./cmd/...
-	-rm -rf $(OUTPUT_DIR)
-
-.PHONY: all build docker clean test $(CMDS)
-
-test:
-	mkdir -p ./_output/coverage/
-	bash hack/unit-test.sh
-
-lint:
-	bash hack/verify-staticcheck.sh
-
-.PHONY: verify
-verify:
-	hack/verify-all.sh
-
-.PHONY: lint_dockerfile
-lint_dockerfile:
-	@ docker run --rm \
-          -v $(ROOT_DIR)/.trivyignore:/.trivyignore \
-          -v /tmp/trivy:/root/trivy.cache/  \
-          -v $(ROOT_DIR):/tmp/src  \
-          aquasec/trivy:$(TRIVY_VERSION) config --exit-code 1  --severity $(LINT_TRIVY_SEVERITY_LEVEL) /tmp/src/docker  ; \
-      (($$?==0)) || { echo "error, failed to check dockerfile trivy" && exit 1 ; } ; \
-      echo "dockerfile trivy check: pass"
-
-.PHONY: lint_chart
-lint_chart:
-	@ docker run --rm \
-          -v $(ROOT_DIR)/.trivyignore:/.trivyignore \
-          -v /tmp/trivy:/root/trivy.cache/  \
-          -v $(ROOT_DIR):/tmp/src  \
-          aquasec/trivy:$(TRIVY_VERSION) config --exit-code 1  --severity $(LINT_TRIVY_SEVERITY_LEVEL) /tmp/src/charts  ; \
-      (($$?==0)) || { echo "error, failed to check chart trivy" && exit 1 ; } ; \
-      echo "chart trivy check: pass"
-
-.PHONY: e2e-env-setup
-e2e-env-setup:
-	./hack/e2e-test-setup.sh
-
-.PHONY: helm-deploy
-helm-deploy:
-	./hack/deploy-helm.sh "${E2E_TYPE}" "${KUBE_CONF}" "${HAMI_VERSION}"
-
-.PHONY: e2e-test
-e2e-test:
-	./hack/e2e-test.sh "${E2E_TYPE}" "${KUBE_CONF}"
-
+## help: Display available make targets
+.PHONY: help
+help:
+	@echo "Usage: make <target>"
+	@echo ""
+	@grep -E '^## ' $(MAKEFILE_LIST) | sed 's/## /  /' | column -t -s ':'
