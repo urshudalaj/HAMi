@@ -8,27 +8,12 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-# Build configuration
-BINARY_NAME ?= hami
-CMD_DIR     := ./cmd
-OUTPUT_DIR  := ./bin
+# WITHOUTUTPUT_DIR  := ./bin
 
 # Image configuration
-REGIRY    hami-project
+REGISTRY    ?= hami-project
 IMAGE_NAME  ?= hami
-VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev")
-I $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-
-# Go build configuration
-GO          := go
-GOFLAGS     ?= -trimpath
-ags "-X main.version=$(VERSION) -w -s"
-
-# Tools
+VERSION     ?= $(shell git describe Tools
 GOLINT      := golangci-lint
 
 .PHONY: all
