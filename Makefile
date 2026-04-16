@@ -8,12 +8,24 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUTUTPUT_DIR  := ./bin
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+OUTPUT_DIR  := ./bin
 
 # Image configuration
 REGISTRY    ?= hami-project
 IMAGE_NAME  ?= hami
-VERSION     ?= $(shell git describe Tools
+VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "devINARY_NAME ?= hami
+
+IMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
+
+# Go settings
+GOLAGS     ?= -trimpath
+LD_FLAGS    ?= -ldflags "-X main.version=$(VERSION)"
+
+# Tools
 GOLINT      := golangci-lint
 
 .PHONY: all
