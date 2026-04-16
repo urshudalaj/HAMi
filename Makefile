@@ -14,16 +14,13 @@
 
 OUTPUT_DIR  := ./bin
 
-# Image configuration
-REGISTRY    ?= hami-project
-IMAGE_NAME  ?= hami
-VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "devINARY_NAME ?= hami
+# Image configuration    ?= hami-project
+IMAGE_NAME  ?=N     ?= $(shell git describe --tags --always --dirty 2)
+BARY_NAME ?= hami
 
-IMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-
-# Go settings
-GOLAGS     ?= -trimpath
-LD_FLAGS    ?= -ldflags "-X main.version=$(VERSION)"
+IMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME Go settings
+GOFtrimpath
+LD_FLAGS    X main.version=$(VERSION)"
 
 # Tools
 GOLINT      := golangci-lint
