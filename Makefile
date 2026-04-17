@@ -6,13 +6,9 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in IS" BASIS,
-# WITHOUT or implied.
-# See the License# Personal settings
-REGISTRY    ?= ghcr.io/mynIMAGE_NAME  ?= hami
-VERSIO --tags --always --dirty 2nIMAGE_TAG   REGISTRY)/$(IMAGE_NAME):$(BINARY_NAME ?= hami
-CMD_DIR     ?= ./cmd
-OUTPUT_DIR  ?= ./bin
+# Unless IS" BASIS,
+# WITHOUTSTRY    ?= ghcE_NAME  ?= hami --always --dirty 2nI)/$(IMAGE_NAME):$(= ./cmd
+OUTP
 GO          ?= go
 GOFLAGS     := -trimpath
 LD_FLAGS    ?= 
@@ -90,6 +86,11 @@ generate:
 mod-tidy:
 	@echo ">> Tidying go modules"
 	$(GO) mod tidy
+
+## check: Run fmt, vet, and lint together (personal shortcut)
+.PHONY: check
+check: fmt vet lint
+	@echo ">> All checks passed"
 
 ## help: Display available make targets
 .PHONY: help
