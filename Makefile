@@ -6,11 +6,16 @@
 #
 #     http://www.apache.org/licenses/LICENSE-2.0
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT.io/myusername
-IMAGE_NAME  ?= hami
-VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev"GOFLAGS     := -trimpath
+# Unless required by applicable law or agreed to in IS" BASIS,
+# WITHOUT or implied.
+# See the License# Personal settings
+REGISTRY    ?= ghcr.io/mynIMAGE_NAME  ?= hami
+VERSIO --tags --always --dirty 2nIMAGE_TAG   REGISTRY)/$(IMAGE_NAME):$(BINARY_NAME ?= hami
+CMD_DIR     ?= ./cmd
+OUTPUT_DIR  ?= ./bin
+GO          ?= go
+GOFLAGS     := -trimpath
+LD_FLAGS    ?= 
 
 # Tools
 GOLINT      := golangci-lint
