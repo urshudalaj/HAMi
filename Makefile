@@ -8,20 +8,9 @@
 #
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-OUTPUT_DIR  := ./bin
-
-# Image configuration
-REGISTRY    ?= docker.io/myusername
+# WITHOUT.io/myusername
 IMAGE_NAME  ?= hami
-VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "devBINARY_NAME ?= hamiMAGE_TAG   ?= $(REGISTRY)/$(IMAGE_NAME):$(VERSION)
-
-# Go settings
-GO          :=MD_DIR     := ./cmd
-GOFLAGS     := -trimflags "-X main.version=$(VERSION)"
+VERSION     ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo "dev"GOFLAGS     := -trimpath
 
 # Tools
 GOLINT      := golangci-lint
